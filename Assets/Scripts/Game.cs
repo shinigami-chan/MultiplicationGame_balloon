@@ -5,6 +5,7 @@ using UnityEngine.SceneManagement;
 
 public class Game : MonoBehaviour
 {
+    public ReactionData reactionData = new ReactionData();
     private Player player;
     private Npc npc;
     readonly int MaxRounds = 5;

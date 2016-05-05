@@ -35,6 +35,7 @@ public class MultiplicationController : MonoBehaviour
         //all rounds have been played -> switch to the end screen memorizing player score
         if (game.loadCurrentQuest() == null)
         {
+            game.reactionData.printAllData();
             Debug.Log("Alle Runden wurden gespielt.");
             PlayerPrefs.SetInt("PlayerPoints", game.getPlayer().getPoints()); //necessary for transfering this to the next scene
             SceneManager.LoadScene("end_screen");
@@ -46,6 +47,8 @@ public class MultiplicationController : MonoBehaviour
             view.setTaskText(game.currentQuest.getProblem().stringProblemTask());
             view.setButtonTexts(game.currentQuest.getOptions());
             StartCoroutine(startNpcBehaviour());
+            //set time stamp
+            game.reactionData.addTimeStampLoadedRound(DateTime.Now);
         }
     }
 
@@ -104,14 +107,20 @@ public class MultiplicationController : MonoBehaviour
     //triggers events following a clicked button (points, new task etc.)
     public void evaluateAnswer(Button button)
     {
+        Debug.Log("begin evaluation: " + DateTime.Now.ToString("dd-MM-yyyy hh:mm:ss.fff"));
         button.interactable = false;
         int buttonIndex = view.buttonList.IndexOf(button);
         MathOption clickedOption = (MathOption)game.currentQuest.getOptions()[buttonIndex];
         clickedOption.setIsClicked();
-       
+
+        //Debug.Log("end evaluation: " + DateTime.Now.ToString("dd:MM:yyyy:hh:mm:ss:fff"));
+
         if (clickedOption.getIsCorrect())
         {
             StopAllCoroutines(); //prevents any interaction with the npc
+
+            game.reactionData.addTimeStampClickedRight(DateTime.Now);
+
             Debug.Log(game.currentQuest.getProblem().stringProblemTask() + " = " + game.currentQuest.getProblem().getSolution() + " correct answer given");
             view.setDisabledButtonColor(button, view.cRight);
             view.popBalloonExceptIndex(buttonIndex, Color.white);
@@ -124,6 +133,7 @@ public class MultiplicationController : MonoBehaviour
         }
         else
         {
+            game.reactionData.addTimeStampClickedWrong(DateTime.Now);
             Debug.Log(game.currentQuest.getProblem().stringProblemTask() + " = " + game.currentQuest.getProblem().getSolution() + " wrong answer given");
 
             view.popBalloon(buttonIndex, Color.white);
