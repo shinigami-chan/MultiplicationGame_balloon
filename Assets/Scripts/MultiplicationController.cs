@@ -35,7 +35,7 @@ public class MultiplicationController : MonoBehaviour
         //all rounds have been played -> switch to the end screen memorizing player score
         if (game.loadCurrentQuest() == null)
         {
-            game.reactionData.printAllData();
+            game.reactionData.creatingCsvFile("test_data.csv");
             Debug.Log("Alle Runden wurden gespielt.");
             PlayerPrefs.SetInt("PlayerPoints", game.getPlayer().getPoints()); //necessary for transfering this to the next scene
             SceneManager.LoadScene("end_screen");
