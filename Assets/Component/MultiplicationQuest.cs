@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections;
-using UnityEngine;
 using Random = System.Random;
+
+
+//TODO @ creatingOptions(): creating primes as solutions
 
 public class MultiplicationQuest
 {
-
     Random rnd = new Random(Guid.NewGuid().GetHashCode());
 
     private MathProblem problem; //mathematical problem, contains term and correct solution
     private ArrayList options; //contains solution, its validity and if the option is already clicked
-    readonly int amountOfOptions = 9;
+    readonly int AmountOfOptions = 9;
 
     public MultiplicationQuest()
     {
@@ -86,36 +87,6 @@ public class MultiplicationQuest
         for (int i=0; i < incorrectSolutions.Count; i++)
         {
             newOptions.Add(new MathOption((int)incorrectSolutions[i]));
-        }
-
-        //giving the correct answer a random index
-        int index = rnd.Next(0, 8);
-        MathOption transAnswer = (MathOption)newOptions[index];
-        newOptions[0] = transAnswer;
-        newOptions[index] = correctOption;
-
-        return newOptions;
-    }
-
-    /// <summary>
-    ///  creates 1 correct answer and several random incorrect answers for the task
-    private ArrayList createRandomOptions()
-    {
-        float solution = problem.getSolution();
-        ArrayList newOptions = new ArrayList();
-
-        MathOption correctOption = new MathOption(solution, true);
-        newOptions.Add(correctOption);
-
-        for (int i = 0; i < amountOfOptions; i++)
-        {
-            int incorrectSolution = rnd.Next(1, 400);
-
-            while (incorrectSolution == solution)                   //avoids the correct solution occuring additionally as incorrect solution
-            {
-                incorrectSolution = rnd.Next(1, 400);
-            }
-            newOptions.Add(new MathOption(incorrectSolution));
         }
 
         //giving the correct answer a random index

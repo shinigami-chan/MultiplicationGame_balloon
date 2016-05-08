@@ -20,7 +20,7 @@ public class MainMenu : MonoBehaviour
         }
     }
 
-    public void SetTestText(string inputFieldString)
+    public void setPlayerNameText(string inputFieldString)
     {
         playerName.text = inputFieldString;
     }

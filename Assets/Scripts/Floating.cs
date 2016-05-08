@@ -12,9 +12,6 @@ public class Floating : MonoBehaviour {
         void Start()
     {
         Random rnd = new Random(Guid.NewGuid().GetHashCode());
-
-        //Store where we were placed in the editor
-        var InitialPosition = transform.position;
         //Create an offset based on our height
         offsetY = transform.position.y + transform.localScale.y;
 

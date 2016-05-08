@@ -1,32 +1,25 @@
 ﻿using UnityEngine;
 using Random = System.Random;
-using System.Collections;
 using System;
 
 public class Npc : MonoBehaviour
 {
-    readonly string npcName = "Gegner";
-    //private bool hasClicked = false;
     private int playerID;
     private int points;
     private int meanResponseTime;
 
     Random rnd = new Random(Guid.NewGuid().GetHashCode());
 
-    //returns whether the npc is going to answer correct or not; correctness is normal distributed
+    //correctness of the upcoming Npc answer (normal distributed)
     public bool isNpcAnswerCorrect()
     {
-        //float errorProbability = RandomFromDistribution.RandomNormalDistribution(0.1f,0.05f);
         float errorProbability = RandomFromDistribution.RandomNormalDistribution(0.2f, 0.05f);
-        //Debug.Log(errorProbability);
 
-
-        //if negative errorProbability -> no error, positive is always > negative
+        //no error if errorProbability is negative
         return rnd.Next(0,100)>errorProbability*100;
     }
 
-    //returns a normal distributed response time
-    public float responseTime()
+    public float getNpcResponseTime()
     {
         return RandomFromDistribution.RandomNormalDistribution(meanResponseTime,500);
     }

@@ -1,9 +1,5 @@
-﻿using UnityEngine;
-using System.Collections;
-
-public class Player
+﻿public class Player
 {
-
     private int playerId;
     private string playerName = "Spieler";
     private int points = 0;

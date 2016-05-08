@@ -5,13 +5,13 @@ using UnityEngine.SceneManagement;
 
 public class Game : MonoBehaviour
 {
-    public ReactionData reactionData = new ReactionData();
+    private ReactionData reactionData = new ReactionData();
     private Player player;
     private Npc npc;
     readonly int MaxRounds = 5;
-    public int currentRound = 0;
-    public MultiplicationQuest currentQuest;
-    public ArrayList quests = new ArrayList();
+    private int currentRound = 0;
+    private MultiplicationQuest currentQuest;
+    private ArrayList quests = new ArrayList();
 
     public Game()
     {           
@@ -53,7 +53,6 @@ public class Game : MonoBehaviour
         return false;
     }
 
-    //get a new Quest -> if all rounds have been played, null is returned
     public MultiplicationQuest loadCurrentQuest()
     {
         if (currentRound >= MaxRounds)
@@ -63,15 +62,9 @@ public class Game : MonoBehaviour
         else
         {
             currentQuest = (MultiplicationQuest)quests[currentRound];
-            //currentQuest = new MultiplicationQuest();
             currentRound++;
             return currentQuest;
         }
-    }
-
-    public void QuitGame()
-    {
-        SceneManager.LoadScene("main_menu");
     }
 
     public int getMaxRounds()
@@ -92,5 +85,15 @@ public class Game : MonoBehaviour
     public void setNpc(Npc npc)
     {
         this.npc = npc;
+    }
+
+    public ReactionData getReactionData()
+    {
+        return reactionData;
+    }
+
+    public MultiplicationQuest getCurrentQuest()
+    {
+        return currentQuest;
     }
 }

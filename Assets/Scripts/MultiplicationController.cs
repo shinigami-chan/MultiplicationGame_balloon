@@ -11,7 +11,7 @@ public class MultiplicationController : MonoBehaviour
 
     private View view;
     private Game game;
-    readonly float ResetTime = 2.5f;
+    readonly float ResetTimeBetweenRounds = 2.5f;
 
     // Use this for initialization
     void Awake()
@@ -19,7 +19,7 @@ public class MultiplicationController : MonoBehaviour
         //initialize game (+ npc) and view (need to be added to an object -> using camera since it exists through the whole game)
         game = GameObject.Find("Main Camera").AddComponent<Game>();
         view = GameObject.Find("Main Camera").AddComponent<View>();
-        game.setNpc( GameObject.Find("Main Camera").AddComponent<Npc>());
+        game.setNpc(GameObject.Find("Main Camera").AddComponent<Npc>());
 
         game.getPlayer().setPlayerName(PlayerPrefs.GetString("PlayerName"));
         view.setPlayerName(game.getPlayer().getPlayerName());
@@ -30,26 +30,32 @@ public class MultiplicationController : MonoBehaviour
 
     public void loadNewRound()
     {
-        view.resetAllButtons();
-        view.resetAllBalloons();
-        //all rounds have been played -> switch to the end screen memorizing player score
+        //all rounds have been played
         if (game.loadCurrentQuest() == null)
         {
-            game.reactionData.creatingCsvFile("test_data.csv");
-            Debug.Log("Alle Runden wurden gespielt.");
-            PlayerPrefs.SetInt("PlayerPoints", game.getPlayer().getPoints()); //necessary for transfering this to the next scene
-            SceneManager.LoadScene("end_screen");
+            prepareEndOfGame();
         }
-        //new quest has been loaded -> set the task to its panel and the options to the buttons, start npc behaviour
         else
         {
-            Debug.Log("neue Quest wurde geladen.");
-            view.setTaskText(game.currentQuest.getProblem().stringProblemTask());
-            view.setButtonTexts(game.currentQuest.getOptions());
-            StartCoroutine(startNpcBehaviour());
-            //set time stamp
-            game.reactionData.addTimeStampLoadedRound(DateTime.Now);
+            prepareAndStartNewRound();
         }
+    }
+
+    private void prepareEndOfGame()
+    {
+        game.getReactionData().creatingCsvFile("test_data.csv");
+        PlayerPrefs.SetInt("PlayerPoints", game.getPlayer().getPoints());
+        SceneManager.LoadScene("end_screen");
+    }
+
+    private void prepareAndStartNewRound()
+    {
+        view.resetAllButtons();
+        view.resetAllBalloons();
+        view.setTaskText(game.getCurrentQuest().getProblem().stringProblemTask());
+        view.setButtonTexts(game.getCurrentQuest().getOptions());
+        StartCoroutine(startNpcBehaviour());
+        game.getReactionData().addTimeStampLoadedRound(DateTime.Now);
     }
 
 
@@ -59,115 +65,108 @@ public class MultiplicationController : MonoBehaviour
         if (player)
         {
             game.getPlayer().setPoints(recievedPoints);
-            view.refreshPoints(game.getPlayer().getPoints());
+            view.updateScoreDisplay(game.getPlayer().getPoints(),true);
         }
         else
         {
             game.getNpc().setPoints(recievedPoints);
-            view.refreshNpcPoints(game.getNpc().getPoints());
+            view.updateScoreDisplay(game.getNpc().getPoints(),false);
         }
     }
 
-
+    /// <summary>
+    /// Chooses a button depending on a correctness probability and sets it to not interactable.
+    /// Reaction time is normal distributed and depends on the chosen difficulty mode.
+    /// <para /> correct answer: all balloons except for the chosen one fly away
+    /// <para /> incorrect answer: not used in this version
+    /// </summary>
     public IEnumerator startNpcBehaviour()
     {
         //normal distributed response time
-        yield return new WaitForSeconds(game.getNpc().responseTime()/1000);
+        yield return new WaitForSeconds(game.getNpc().getNpcResponseTime()/1000);
 
         //100% correct answers in this version
         //bool npcAnswersCorrect = game.getNpc().isNpcAnswerCorrect();
 
-        int i = rnd.Next(0, 8);
-        while (view.buttonList[i].interactable == false ||
-            !((MathOption)game.currentQuest.getOptions()[i]).getIsCorrect())
+        int buttonIndex = rnd.Next(0, 8);
+        while (view.buttonList[buttonIndex].interactable == false ||
+            !((MathOption)game.getCurrentQuest().getOptions()[buttonIndex]).getIsCorrect())
         {
-            i = rnd.Next(0, 8);
+            buttonIndex = rnd.Next(0, 8);
         }
         
-        view.buttonList[i].interactable = false;
+        view.buttonList[buttonIndex].interactable = false;
 
-        if (((MathOption)game.currentQuest.getOptions()[i]).getIsCorrect())
+        if (((MathOption)game.getCurrentQuest().getOptions()[buttonIndex]).getIsCorrect())
             {
-            view.letBallonsFlyAwayExceptIndex(i);
-                view.setDisabledButtonColor(view.buttonList[i], view.cRight);
-                updatePoints(10,false);
-                view.disableAllButtons();
-                Invoke("loadNewRound", ResetTime);
+                correctAnswered(buttonIndex,false);
             }
-        //100% correct answers in this version
-            //else
-            //{
-            //    view.popBalloon(i, new Color(230, 0, 255, 188));
-            //    view.setDisabledButtonColor(view.buttonList[i], view.cWrong);
-            //    StartCoroutine(startNpcBehaviour());
-            //}
+        else
+        {
+            //incorrectAnswered(buttonIndex,false); //no incorrect answers in this Version
+        }
     }
 
-
-    //triggers events following a clicked button (points, new task etc.)
-    public void evaluateAnswer(Button button)
+    /// <summary>
+    /// Sets clicked button to not interactable and checks whether the answer is correct or not.
+    /// <para /> correct answer: time stamp is saved and all balloons except for the clicked one pop
+    /// <para /> incorrect answer: time stamp is saved and the clicked balloon pops
+    /// </summary>
+    public void triggerEventsAfterPlayersAnswer(Button button)
     {
-        Debug.Log("begin evaluation: " + DateTime.Now.ToString("dd-MM-yyyy hh:mm:ss.fff"));
         button.interactable = false;
         int buttonIndex = view.buttonList.IndexOf(button);
-        MathOption clickedOption = (MathOption)game.currentQuest.getOptions()[buttonIndex];
+        MathOption clickedOption = (MathOption)game.getCurrentQuest().getOptions()[buttonIndex];
         clickedOption.setIsClicked();
-
-        //Debug.Log("end evaluation: " + DateTime.Now.ToString("dd:MM:yyyy:hh:mm:ss:fff"));
 
         if (clickedOption.getIsCorrect())
         {
-            StopAllCoroutines(); //prevents any interaction with the npc
-
-            game.reactionData.addTimeStampClickedRight(DateTime.Now);
-
-            Debug.Log(game.currentQuest.getProblem().stringProblemTask() + " = " + game.currentQuest.getProblem().getSolution() + " correct answer given");
-            view.setDisabledButtonColor(button, view.cRight);
-            view.popBalloonExceptIndex(buttonIndex, Color.white);
-
-            updatePoints(10,true);
-            view.disableAllButtons();
-
-            //Invoke: adds delay time for the methods
-            Invoke("loadNewRound", ResetTime);
+            correctAnswered(buttonIndex,true);
         }
         else
         {
-            game.reactionData.addTimeStampClickedWrong(DateTime.Now);
-            Debug.Log(game.currentQuest.getProblem().stringProblemTask() + " = " + game.currentQuest.getProblem().getSolution() + " wrong answer given");
-
-            view.popBalloon(buttonIndex, Color.white);
-            view.setDisabledButtonColor(button, view.cWrong);
+            incorrectAnswered(buttonIndex,true);
         }
     }
 
-    //public void goToMainMenu()
-    //{
-    //    SceneManager.LoadScene("main_menu");
-    //}
+    private void correctAnswered(int buttonIndex, bool isPlayer)
+    {
+        if (isPlayer)
+        {
+            StopAllCoroutines(); //prevents any intersection with Npc
 
-    //public void quitGame()
-    //{
-    //    Application.Quit();
-    //}
+            game.getReactionData().addTimeStampClickedRight(DateTime.Now);
 
-    //public void muteSound()
-    //{
-    //    view.music.mute = true;
-    //    view.balloonPoppingSound.mute = true;
-    //    view.muteButton.interactable = false;
-    //    view.muteButton.gameObject.SetActive(false);
-    //    view.unmuteButton.interactable = true;
-    //    view.unmuteButton.gameObject.SetActive(true);
-    //}
+            Debug.Log(game.getCurrentQuest().getProblem().stringProblemTask() + " = " + game.getCurrentQuest().getProblem().getSolution() + " correct answer given");
+            view.setDisabledButtonColor(view.buttonList[buttonIndex], view.cRight);
+            view.popBalloonExceptIndex(buttonIndex, Color.white);
+        }
+        else
+        {
+            view.letBallonsFlyAwayExceptIndex(buttonIndex);
+            view.setDisabledButtonColor(view.buttonList[buttonIndex], view.cRight);
+        }
+        updatePoints(10, isPlayer);
+        view.disableAllButtons();
 
-    //public void unMuteSound()
-    //{
-    //    view.music.mute = false;
-    //    view.balloonPoppingSound.mute = false;
-    //    view.muteButton.interactable = true;
-    //    view.muteButton.gameObject.SetActive(true);
-    //    view.unmuteButton.interactable = false;
-    //    view.unmuteButton.gameObject.SetActive(false);
-    //}
+        Invoke("loadNewRound", ResetTimeBetweenRounds);
+    }
+
+    private void incorrectAnswered(int buttonIndex, bool isPlayer)
+    {
+        if (isPlayer)
+        {
+            game.getReactionData().addTimeStampClickedWrong(DateTime.Now);
+            Debug.Log(game.getCurrentQuest().getProblem().stringProblemTask() + " = " + game.getCurrentQuest().getProblem().getSolution() + " wrong answer given");
+
+            view.popBalloon(buttonIndex, Color.white);
+            view.setDisabledButtonColor(view.buttonList[buttonIndex], view.cWrong);
+        }
+        else
+        {
+            view.popBalloon(buttonIndex, new Color(230, 0, 255, 188));
+            view.setDisabledButtonColor(view.buttonList[buttonIndex], view.cWrong);
+            StartCoroutine(startNpcBehaviour());
+        }
+    }
 }

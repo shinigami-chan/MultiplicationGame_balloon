@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-
-public class MathProblem {
+﻿public class MathProblem {
     private float term1;
     private float term2;
     private string operation;

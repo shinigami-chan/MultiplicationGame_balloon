@@ -4,11 +4,15 @@ using UnityEngine;
 using System.IO;
 using System.Text;
 
+/// <summary>
+/// Provides a list of reaction data (e.g. time stamps) and writes it into a csv file.
+/// </summary>
+
 public class ReactionData{
 
     //format: dd-MM-yyyy hh:mm:ss.fff
 
-    public ArrayList reactionData;
+    private ArrayList reactionData;
     readonly string FILEPATH = //"D:\\Dokumente\\UNITY\\";
         "./";
     readonly string[] CSV_HEADER = new string[] { "id", "time_stamp", "action" };

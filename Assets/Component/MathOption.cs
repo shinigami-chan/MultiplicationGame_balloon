@@ -1,6 +1,5 @@
 ﻿public class MathOption : Option
 {
-
     private float altSolution;          //alternative solution, can be correct or incorrect
     private bool isCorrect = false;
     private bool isClicked = false;

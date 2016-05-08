@@ -38,13 +38,7 @@ public class View : MonoBehaviour
     public Color cWrong = Color.gray;
     public Color cRight = Color.white;
 
-    //public Button muteButton;
-    //public Button unmuteButton;
-    //public Button returnButton;
-    //public Button quitButton;
-
     public AudioSource balloonPoppingSound;
-    //public AudioSource music;
 
     public NavigationSystem navigationSystem;
 
@@ -73,27 +67,20 @@ public class View : MonoBehaviour
         balloonMainList.Add(balloonMain7);
         balloonMainList.Add(balloonMain8);
 
-        //GameObject.Find can only be used in the main thread -> referencing all buttons
+        //referencing GameObjects and UI elements
+
         for (int i = 0; i < buttonList.Count; i++)
         {
             buttonList[i] = GameObject.Find("Button" + i).GetComponent<Button>();
             balloonMainList[i] = GameObject.Find("BalloonMain" + i);
         }
 
-        //referencing other UI Objects
         taskText = GameObject.Find("Task").GetComponent<Text>();
         playerNameText = GameObject.Find("Player").GetComponent<Text>();
         playerScoreText = GameObject.Find("PlayerScore").GetComponent<Text>();
         npcScoreText = GameObject.Find("NpcScore").GetComponent<Text>();
 
-        //muteButton = GameObject.Find("MuteButton").GetComponent<Button>();
-        //returnButton = GameObject.Find("ReturnButton").GetComponent<Button>();
-        //quitButton = GameObject.Find("QuitButton").GetComponent<Button>();
-        //unmuteButton = GameObject.Find("UnmuteButton").GetComponent<Button>();
-        //unmuteButton.gameObject.SetActive(false);
-
         balloonPoppingSound = GameObject.Find("Sound").GetComponent<AudioSource>();
-        //music = GameObject.Find("Music").GetComponent<AudioSource>();
     }
 
     public void setPlayerName(string playerName)
@@ -108,16 +95,18 @@ public class View : MonoBehaviour
         button.colors = cb;             //apply copy back
     }
 
-    
-    public void refreshPoints(int newPoints)
-    {
-        playerScoreText.text = "" + newPoints;
-    }
 
-    public void refreshNpcPoints(int newPoints)
+    public void updateScoreDisplay(int newPoints, bool isPlayer)
     {
-        npcScoreText.text = "" + newPoints;
-    }
+        if (isPlayer)
+        {
+            playerScoreText.text = "" + newPoints;
+        }
+        else
+        {
+            npcScoreText.text = "" + newPoints;
+        }
+    }   
 
     public void setButtonTexts(ArrayList options)
     {
@@ -152,7 +141,6 @@ public class View : MonoBehaviour
         }
     }
 
-    //set all buttons disabled
     public void disableAllButtons()
     {
         for (int i = 0; i < buttonList.Count; i++)
@@ -218,13 +206,11 @@ public class View : MonoBehaviour
         {
             GameObject button = GameObject.Find("Button" + i);
             Destroy(button.GetComponent("FlyAway"));
-            Debug.Log("should be destroyed");
             button.transform.localPosition = new Vector3(0,0.05f,0);
             if (button.GetComponent("Floating") == null)
             {
                 button.AddComponent<Floating>();
             }
-            //makeBalloonMainVisible(i);
         }
     }
 

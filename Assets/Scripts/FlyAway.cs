@@ -12,9 +12,6 @@ public class FlyAway : MonoBehaviour
     void Start()
     {
         Random rnd = new Random(Guid.NewGuid().GetHashCode());
-
-        //Store where we were placed in the editor
-        var InitialPosition = transform.position;
         //Create an offset based on our height
         offsetX = transform.position.x + transform.localScale.x;
 

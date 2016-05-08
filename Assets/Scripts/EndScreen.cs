@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 public class EndScreen : MonoBehaviour {
 
-    Text endScreenText;
+    public Text endScreenText;
 
 	void Start () {
 
